@@ -12,7 +12,7 @@
 #endif
 
 // How many NeoPixels are attached to the Arduino?
-#define LED_COUNT 256
+#define LED_COUNT 1024
 
 // Color definitions
 #define BLACK    0x0000
@@ -24,7 +24,7 @@
 #define YELLOW   0xFFE0 
 #define WHITE    0xFFFF
 
-Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(16, 16, LED_PIN,
+Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 32, LED_PIN,
   NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
   NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG,
   NEO_GRB            + NEO_KHZ800);
@@ -69,7 +69,7 @@ void setup() {
   
   matrix.begin();
 
-  matrix.setBrightness(20);
+  matrix.setBrightness(5);
   matrix.setTextWrap(false);
 
     
@@ -111,5 +111,17 @@ void loop() {
 
   matrix.show();
 
+  delay(5000);
+
+  matrix.clear();
+
+  for (int i = 0; i < LED_COUNT; i++) {
+    matrix.setPixelColor(i, matrix.Color(255, 255, 255));
+  }
+  
+  // Update the Neopixels
+  matrix.show();
+  
+  // Wait for a second
   delay(5000);
 }
