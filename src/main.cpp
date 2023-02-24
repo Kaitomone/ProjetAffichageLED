@@ -42,7 +42,10 @@
               
  * */
 #include <Arduino.h>
-#include <ArduinoJson.h>
+// #include <ArduinoJson.h>
+#include <MyFunctions.cpp>
+#include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -66,9 +69,6 @@ MyOledView *myOledView = NULL;
 WiFiManager wm;
 #define WEBSERVER_H
 
-//Pour la gestion du serveur ESP32
-#include "MyServer.h"
-MyServer *myServer = NULL; 
 
 //Variable pour la connection Wifi
 const char *SSID = "EcoleDuWeb2.4g";
@@ -130,12 +130,34 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(16, 16, LED_PIN,
 
 
 // On créer notre CallBack qui va recevoir les messages envoyés depuis la page WEB
-std::string callback(char* topic, byte* message, unsigned int length) {
+void callback(char* topic, byte* message, unsigned int length) {
+
+  couleur = "";
+  for (int i = 0; i < length; i++)
+  {
+    couleur.concat(String((message[i] - '0')));
+  }
+
+  string actionToDo1 = getValue(couleur.c_str(), '-16', 0);
+  string actionToDo2 = getValue(couleur.c_str(), '-16', 1);
+  string actionToDo3 = getValue(couleur.c_str(), '-16', 2);
+
+  // Print message to serial monitor
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print(", ");
+  Serial.print(actionToDo1.c_str());
+  Serial.print(", ");
+  Serial.print(actionToDo2.c_str());
+  Serial.print(", ");
+  Serial.print(actionToDo3.c_str());
+  Serial.print("] ");
+
   if (strcmp(topic, "enzo/led/couleur") == 0) {
     // Parse RGB color message
-    int r = message[0];
-    int g = message[1];
-    int b = message[2];
+    int r = stoi(actionToDo1);
+    int g = stoi(actionToDo2);
+    int b = stoi(actionToDo3);
 
     // Print RGB values to serial monitor
     Serial.print("RGB color received: ");
@@ -147,7 +169,6 @@ std::string callback(char* topic, byte* message, unsigned int length) {
     Serial.println(b);
   }
 
-  return NULL;
 }
 
 void setup_wifi() {
@@ -177,21 +198,21 @@ void setup() {
   myOled->init();
 
   // put your setup code here, to run once:
-  void drawPixel(uint16_t x, uint16_t y, uint16_t color);
-  void drawFastVLine(uint16_t x0, uint16_t y0, uint16_t length, uint16_t color);
-  void drawFastHLine(uint8_t x0, uint8_t y0, uint8_t length, uint16_t color);
+  // void drawPixel(uint16_t x, uint16_t y, uint16_t color);
+  // void drawFastVLine(uint16_t x0, uint16_t y0, uint16_t length, uint16_t color);
+  // void drawFastHLine(uint8_t x0, uint8_t y0, uint8_t length, uint16_t color);
   
-  void drawRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t color);
-  void fillRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t color);
+  // void drawRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t color);
+  // void fillRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t color);
 
-  void drawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
-  void fillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
+  // void drawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
+  // void fillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color);
 
-  void drawRoundRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t radius, uint16_t color);
-  void fillRoundRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t radius, uint16_t color);
+  // void drawRoundRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t radius, uint16_t color);
+  // void fillRoundRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t radius, uint16_t color);
 
-  void drawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
-  void fillTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+  // void drawTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+  // void fillTriangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
   
   void drawChar(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg, uint8_t size);
   
@@ -236,36 +257,36 @@ void reconnect() {
 }
 void loop() {
   
-  matrix.clear();
+  // matrix.clear();
 
-  matrix.setCursor(0, 4);
-  matrix.setTextSize(1);
-  matrix.setTextColor(WHITE);
-  matrix.print("ENZO");
-  matrix.show();
+  // matrix.setCursor(0, 4);
+  // matrix.setTextSize(1);
+  // matrix.setTextColor(WHITE);
+  // matrix.print("ENZO");
+  // matrix.show();
 
-  matrix.print('\n');
+  // matrix.print('\n');
 
-  matrix.setTextColor(RED);
-  matrix.print("SAMY");
-  matrix.show();
+  // matrix.setTextColor(RED);
+  // matrix.print("SAMY");
+  // matrix.show();
 
-  delay(5000);
+  // delay(500);
 
-  matrix.clear();
-  matrix.setCursor(0, 4);
-  matrix.drawCircle(8, 8, 7, RED);
-  matrix.show();
+  // matrix.clear();
+  // matrix.setCursor(0, 4);
+  // matrix.drawCircle(8, 8, 7, RED);
+  // matrix.show();
 
-  delay(5000);
+  // delay(500);
 
-  matrix.clear();
-  for (int i = 0; i < LED_COUNT; i++) {
-    matrix.setPixelColor(i, matrix.Color(255, 255, 255));
-  }
-  matrix.show();
+  // matrix.clear();
+  // for (int i = 0; i < LED_COUNT; i++) {
+  //   matrix.setPixelColor(i, matrix.Color(255, 255, 255));
+  // }
+  // matrix.show();
   
-  delay(5000);
+  // delay(500);
 
   if (!client.connected()) {
     reconnect();
@@ -276,13 +297,28 @@ void loop() {
   if (now - lastMsg > 5000) {
     lastMsg = now;
 
-    char laCouleur[12];
-    float leCouleur = 255;
+    char leR[8];
+    char leG[8];
+    char leB[8];
 
-    dtostrf(leCouleur, 1 ,2, laCouleur);
+    float R = 100;
+    float G = 200;
+    float B = 255;
+
+    dtostrf(R, 1 ,0, leR);
+    dtostrf(G, 1 ,0, leG);
+    dtostrf(B, 1 ,0, leB);
 
     Serial.print("Couleur: ");
-    Serial.println(leCouleur);
-    client.publish("enzo/led/couleur", laCouleur);
+    Serial.print("R=");
+    Serial.print(leR);
+    Serial.print(", G=");
+    Serial.print(leG);
+    Serial.print(", B=");
+    Serial.println(leB);
+
+    client.publish("enzo/led/couleur/R", leR);
+    client.publish("enzo/led/couleur/G", leG);
+    client.publish("enzo/led/couleur/B", leB);
   }
 }
