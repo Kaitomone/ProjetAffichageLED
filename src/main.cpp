@@ -14,6 +14,7 @@
            1.1        23/02/23   Enzo       Implémentation du serveur
            1.2        17/03/23   Enzo       Réalisation du publish et subscribe avec le serveur MQTT
            1.3        06/04/23   Enzo       Récupération de la couler et du texte
+           1.4        14/04/23   Enzo       Ajout du WifiManager pour rentrer l'IP en statique
            
 
     platform = espressif32
@@ -46,10 +47,18 @@
 
 using namespace std;
 
+#include <WiFi.h>
 #include <WiFiManager.h>
 #include <HTTPClient.h>
 WiFiManager wm;
 #define WEBSERVER_H
+
+//Pour la gestion du serveur ESP32
+#include "MyServer.h"
+MyServer *myServer = NULL; 
+
+bool changementAdresseIP = false;
+string adresseIP = "";
 
 //Variable pour la connection Wifi
 const char *SSID = "EcoleDuWeb2.4g";
@@ -135,6 +144,27 @@ void callback(char* topic, byte* message, unsigned int length) {
   }
 }
 
+// On créer notre CallBack qui va recevoir les messages envoyés depuis la page WEB
+// std::string CallBackMessageListener(string message) {
+//   while(replaceAll(message, std::string("  "), std::string(" ")));
+
+//   string actionToDo1 = getValue(message, ' ', 0);
+//   string arg1 = getValue(message, ' ', 1);
+//   string arg2 = getValue(message, ' ', 2);
+//   if (string(actionToDo1.c_str()).compare(string("changement")) == 0) 
+//   {
+//       if(string(arg1.c_str()).compare(string("getAdresseIP")) == 0) 
+//       {
+//         changementAdresseIP = true;
+//         adresseIP = arg2.c_str();
+//         return(String("Ok").c_str());
+//       }
+//   }
+
+//   std::string result = "";
+//   return result;
+//   }
+
 void setup_wifi() {
   delay(10);
   // We start by connecting to a WiFi network
@@ -152,6 +182,17 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+  IPAddress staticIP(172, 16, 7, 10);
+  IPAddress gateway(172, 16, 7, 255);
+  IPAddress subnet(255, 255, 255, 0);
+  WiFi.config(staticIP, gateway, subnet);
+
+  // Print network information
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: " + WiFi.localIP().toString());
+  Serial.println("");
 }
 
 void setup() {
@@ -178,6 +219,11 @@ void setup() {
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+  // // ----------- Routes du serveur ----------------
+  // myServer = new MyServer(80);
+  // myServer->initAllRoutes();
+  // myServer->initCallback(&CallBackMessageListener);
 }
 
 void reconnect() {
@@ -199,7 +245,6 @@ void reconnect() {
   }
 }
 void loop() {
-  
   if (!client.connected()) {
     reconnect();
   }

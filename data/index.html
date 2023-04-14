@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!-- Page pour notre service WEB-->
+<!-- Projet Meubles Dubés.Inc pour le cours d'Objets Connectés avec Alain Dubé, projet en collaboration avec Alexis Leclerc et Enzo Richard -->
+<!-- Cette page sert comme visuel pour notre projet -->
+<!-- Le projet consiste à programmer un Système Atmosphérique Connectés (SAC) pour le four de séchage dans l'usine -->
+<!-- Depuis cette page l'on pourra sélectionner le bois que l'on veut faire sécher, voir ses caractéristiques, voir la température du four-->
+<!-- l'état du four, porte fermé, en cours de séchage ou prêt, et on peut bien sûr démarrer le four-->
+<!-- Auteur Richard Enzo --> 
+<html>
+
+    <head>
+        <meta charset="utf-8" />
+        <script src="script.js"></script>
+        <title id="nom">ESP32</title>
+    </head>
+
+    <body>
+        <div style="float:center;">
+            <h1 id="nom">Configuration ESP32</h1>
+            <label for="adresseIP">Adresse IP de l'ESP :</label>
+            <input type="text" id="adresseIP" name="adresseIP"><br><br>
+            <input type="button" id="btnTemp" onclick="getAdresseIP()" value="Enoyver l'adresse IP de l'ESP32"></input>
+        </div>
+    </body>
+
+</html>
