@@ -13,6 +13,8 @@
            1.0        23/02/03   Enzo       Première version du logiciel
            1.1        23/02/23   Enzo       Implémentation du serveur
            1.2        17/03/23   Enzo       Réalisation du publish et subscribe avec le serveur MQTT
+           1.3        06/04/23   Enzo       Récupération de la couler et du texte
+           
 
     platform = espressif32
     board = esp32doit-devkit-v1
@@ -35,7 +37,7 @@
     
     Fonctions utiles (utilitaires)
               
- * */
+*/
 #include <Arduino.h>
 // #include <ArduinoJson.h>
 #include <MyFunctions.cpp>
@@ -114,30 +116,20 @@ void callback(char* topic, byte* message, unsigned int length) {
     memcpy(receivedMessage, message, length);
     receivedMessage[length] = '\0';
     // Print received message to serial monitor
-    Serial.print("Text received: ");
     Serial.println(receivedMessage);
 
     couleur = receivedMessage;
-    Serial.println("Ca se passe trop mal ?");
 
     string actionToDo1 = getValue(couleur.c_str(), ' ', 0);
     string actionToDo2 = getValue(couleur.c_str(), ' ', 1);
     string actionToDo3 = getValue(couleur.c_str(), ' ', 2);
     string actionToDo4 = getValue(couleur.c_str(), ' ', 3);
 
-    Serial.println("C'est comment la ?");
-
     // Parse RGB color message
     r = stoi(actionToDo1);
-    Serial.println("Avec ca ?");
     g = stoi(actionToDo2);
-    Serial.println("Ou ceci ?");
     b = stoi(actionToDo3);
-    Serial.println("Alors peut etre ?");
     texte = actionToDo4;
-    Serial.println("Toujours pas ?");
-
-    Serial.println("Toujours good ?");
 
     etat = 0;
   }
@@ -147,7 +139,6 @@ void setup_wifi() {
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
-  Serial.print("Connecting to ");
   Serial.println(SSID);
 
   WiFi.begin(SSID, PASSWORD);
@@ -165,7 +156,6 @@ void setup_wifi() {
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("Je suis good");
   
   void drawChar(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg, uint8_t size);
   
@@ -185,12 +175,9 @@ void setup() {
   matrix.setTextSize(1);
   matrix.show();
 
-  Serial.println("TOujours la");
   setup_wifi();
-  Serial.println("TOujours la encore une fois");
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
-  Serial.println("On ne m'arrete plus");
 }
 
 void reconnect() {
@@ -252,6 +239,7 @@ void loop() {
     char leB[8];
     char laCouleur[24];
     char leMessage[8];
+    char msgEnvoie[30];
 
     dtostrf(r, 1 ,0, leR);
     dtostrf(g, 1 ,0, leG);
@@ -272,12 +260,14 @@ void loop() {
     Serial.print(", message=");
     Serial.println(leMessage);
 
+    sprintf(msgEnvoie, "%s %s %s %s", leR, leG, leB, texte.c_str());
+
     // client.publish("enzo/led/couleur/R", leR);
     // client.publish("enzo/led/couleur/G", leG);
     // client.publish("enzo/led/couleur/B", leB);
-    client.publish("enzo/led/couleur", laCouleur);
+    // client.publish("enzo/led/couleur", laCouleur);
 
-    client.publish("enzo/led/message", leMessage);
+    client.publish("enzo/led/message", msgEnvoie);
 
   }
 }
