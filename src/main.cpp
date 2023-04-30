@@ -7,13 +7,15 @@
  *  
     @file     main.cpp
     @author   Alain Dubé
-    @version  1.2 17/03/23 
+    @version  1.4 17/03/23 
     Historique des versions
            Version    Date       Auteur       Description
            1.0        23/02/03   Enzo       Première version du logiciel
            1.1        23/02/23   Enzo       Implémentation du serveur
            1.2        17/03/23   Enzo       Réalisation du publish et subscribe avec le serveur MQTT
            1.3        06/04/23   Enzo       Récupération de la couler et du texte
+           1.4        14/04/23   Enzo       Ajout du WifiManager pour rentrer l'IP en statique
+           1.5        29/04/23   Enzo       Finalisation du projet.
            
 
     platform = espressif32
@@ -46,10 +48,14 @@
 
 using namespace std;
 
+#include <WiFi.h>
 #include <WiFiManager.h>
 #include <HTTPClient.h>
 WiFiManager wm;
 #define WEBSERVER_H
+
+bool changementAdresseIP = false;
+string adresseIP = "";
 
 //Variable pour la connection Wifi
 const char *SSID = "EcoleDuWeb2.4g";
@@ -72,8 +78,6 @@ int g = 0;
 int b = 0;
 string texte;
 
-bool etat;
-
 #include <Adafruit_GFX.h>
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
@@ -88,6 +92,8 @@ bool etat;
 
 // How many NeoPixels are attached to the Arduino?
 #define LED_COUNT 256
+
+string panneau = "Moyen";
 
 // Color definitions
 #define BLACK    0x0000
@@ -110,7 +116,7 @@ void callback(char* topic, byte* message, unsigned int length) {
   
   couleur =  "";
   
-  if (strcmp(topic, "enzo/led/couleur") == 0) {
+  if (strcmp(topic, "Enzo/led/couleur") == 0) {
 
     char receivedMessage[length + 1];
     memcpy(receivedMessage, message, length);
@@ -130,8 +136,6 @@ void callback(char* topic, byte* message, unsigned int length) {
     g = stoi(actionToDo2);
     b = stoi(actionToDo3);
     texte = actionToDo4;
-
-    etat = 0;
   }
 }
 
@@ -152,6 +156,17 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+  IPAddress staticIP(172, 16, 5, 150);
+  IPAddress gateway(172, 16, 4, 2);
+  IPAddress subnet(255, 255, 255, 0);
+  WiFi.config(staticIP, gateway, subnet);
+
+  // Print network information
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: " + WiFi.localIP().toString());
+  Serial.println("");
 }
 
 void setup() {
@@ -188,7 +203,7 @@ void reconnect() {
     if (client.connect("ESP32_client")) {
       Serial.println("connected");
       // Subscribe
-      client.subscribe("enzo/led/couleur");
+      client.subscribe("Enzo/led/couleur");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -199,7 +214,6 @@ void reconnect() {
   }
 }
 void loop() {
-  
   if (!client.connected()) {
     reconnect();
   }
@@ -209,65 +223,19 @@ void loop() {
   if (now - lastMsg > 5000) {
     lastMsg = now;
 
-    delay(100);
+    delay(2000);
 
     matrix.clear();
-
-    if(etat == 0) {
-
-      // Fill the Neopixels with red
-      for (int i = 0; i < LED_COUNT; i++) {
-        matrix.setPixelColor(i, matrix.Color(0, 0, 255));
-      }
-    }
     
-    if(etat == 1) {
-      matrix.setCursor(0, 4);
-      matrix.setTextSize(1);
-      matrix.Color(r,g,b);
-      matrix.println(texte.c_str());
-    }
+    matrix.setCursor(0, 4);
+    matrix.setTextSize(1);
+
+    matrix.setTextColor(matrix.Color(r, g, b));
+    matrix.println(texte.c_str());
 
     // Update the Neopixels
     matrix.show();
 
-    // Wait for a second
-    delay(50);
-
-    char leR[8];
-    char leG[8];
-    char leB[8];
-    char laCouleur[24];
-    char leMessage[8];
-    char msgEnvoie[30];
-
-    dtostrf(r, 1 ,0, leR);
-    dtostrf(g, 1 ,0, leG);
-    dtostrf(b, 1 ,0, leB);
-    sprintf(laCouleur, "%s %s %s", leR, leG, leB);
-    Serial.print("Couleur: ");
-    Serial.println(laCouleur);
-    sprintf(leMessage, "%s ", texte.c_str());
-
-
-    Serial.println("Couleur: ");
-    Serial.print("R=");
-    Serial.print(leR);
-    Serial.print(", G=");
-    Serial.print(leG);
-    Serial.print(", B=");
-    Serial.print(leB);
-    Serial.print(", message=");
-    Serial.println(leMessage);
-
-    sprintf(msgEnvoie, "%s %s %s %s", leR, leG, leB, texte.c_str());
-
-    // client.publish("enzo/led/couleur/R", leR);
-    // client.publish("enzo/led/couleur/G", leG);
-    // client.publish("enzo/led/couleur/B", leB);
-    // client.publish("enzo/led/couleur", laCouleur);
-
-    client.publish("enzo/led/message", msgEnvoie);
-
+    client.publish("Enzo/led/panneau", panneau.c_str());
   }
 }
